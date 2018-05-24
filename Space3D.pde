@@ -48,7 +48,7 @@ void keyboardControls() {
 //Create grid
 void createGrid(int size, int tilesize) {
   if (enable) {
-    strokeWeight(2.5);
+    strokeWeight(0.5 * zoomFactor);
     //+x axis
     stroke(255, 0, 0);
     line(0, 0, 0, size/2*tilesize, 0, 0);
@@ -76,7 +76,7 @@ void createGrid(int size, int tilesize) {
         pushMatrix();
         translate(x*tilesize, 0, z*tilesize);
         rotateX(HALF_PI);
-        strokeWeight(.5);
+        strokeWeight(0.1 * zoomFactor);
         stroke(0, 255, 0, map(dist(-gridPos.x, -gridPos.z, x*tilesize, z*tilesize), 0, size/2*tilesize, 255, 0));
         rect(0, 0, tilesize, tilesize);
         popMatrix();
@@ -90,7 +90,7 @@ void createGrid(int size, int tilesize) {
         pushMatrix();
         translate(0, y*tilesize, z*tilesize);
         rotateY(HALF_PI);
-        strokeWeight(.5);
+        strokeWeight(0.1 * zoomFactor);
         stroke(0, 255, 0, map(dist(-gridPos.x, -gridPos.z, y*tilesize, z*tilesize), 0, size/2*tilesize, 255, 0));
         rect(0, 0, tilesize, tilesize);
         popMatrix();
@@ -137,7 +137,7 @@ class Color {
 ArrayList<Vertex> vbo = new ArrayList<Vertex>();
 ArrayList<int[]> vib = new ArrayList<int[]>();
 
-void drawModel(Color shade) {
+void drawModel(ArrayList<Vertex> vbo, ArrayList<int[]> vib, Color shade) {
   fill(shade.r, shade.g, shade. b, shade.a);
   for (int[] face : vib) {
     Vertex a = vbo.get(face[0]);
@@ -226,6 +226,32 @@ void directionalLight(Color clr, int nx, int ny, int nz) {
 }
 //End lighting
 
+//3D transformation
+ArrayList<Vertex> translate3D(ArrayList<Vertex> vbo, float x, float y, float z) {
+  ArrayList<Vertex> result = new ArrayList();
+  for(Vertex point : vbo) {
+    result.add(new Vertex(
+      point.x + x,
+      point.y + y,
+      point.z + z
+    ));
+  }
+  return result;
+}
+
+ArrayList<Vertex> scale3D(ArrayList<Vertex> vbo, float scaleFactor) {
+  ArrayList<Vertex> result = new ArrayList();
+  for(Vertex point : vbo) {
+    result.add(new Vertex(
+      point.x * scaleFactor,
+      point.y * scaleFactor,
+      point.z * scaleFactor
+    ));
+  }
+  return result;
+}
+//End 3D transformation
+
 void setup() {
   size(1270, 720, P3D);
   loadFiles("cube.obj");
@@ -244,8 +270,10 @@ void draw() {
   translate(gridPos.x, gridPos.y, gridPos.z);
   scale(1, -1, 1);
   createGrid(SPACE_DEPTH / zoomFactor, GRID_SIZE * zoomFactor);
-  pointLight(new Color(255, 255, 0), 10, 10, 20);
-  drawModel(new Color(255, 255, 255, 255));
+  //pointLight(new Color(255, 255, 255), 10, 10, 20);
+  drawModel(vbo, vib, new Color(255, 255, 255, 10));
+  //drawModel(scale3D(2), vib, new Color(255, 0, 0, 100));
+  drawModel(translate3D(scale3D(vbo, 2), 1, 1, 1), vib, new Color(255, 0, 0, 100));
   //---//
   popMatrix();
   translate(pos.x, pos.y, pos.z);
